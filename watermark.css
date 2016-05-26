@@ -1,0 +1,60 @@
+body, div, ol, select, option {
+	margin: 0;
+	padding: 0;
+}
+
+canvas {
+	display: block;
+	margin: 10px;
+}
+
+button {
+	float: left;
+	margin-left: 10px;
+	padding: 10px;
+	color: #fff;
+	background: #058;
+	border: 0;
+	outline: 0;
+	transition: all 0.3s;
+}
+
+button:hover {
+	background: #036;
+}
+
+#download {
+	background: #085;
+}
+
+#download:hover {
+	background: #063;
+}
+
+.options {
+	clear: both;
+	padding: 10px 10px 0;
+}
+
+label {
+	display: block;
+	margin-bottom: 20px;
+}
+
+input {
+	outline: 0;
+	line-height: 1.5;
+	margin-left: 10px;
+}
+
+select {
+	margin-left: 10px;
+}
+
+#margin {
+	width: 50px;
+}
+
+.error {
+	color: #f00;
+}
