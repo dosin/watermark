@@ -2,76 +2,138 @@
 (function(global){
 
 	var config = {
-		// ID
-		canvas : "canvas",               //canvas
-		button : "button",               //生成水印
-		download : "download",           //下载
-		image : "image",                 //图片链接
-		text : "text",                   //水印文字
-		fontSize : "fontSize",           //水印字号
-		fontFamily : "fontFamily",       //水印字体
-		position : "position",           //水印位置
-		color : "color",                 //水印颜色
-		format : "format",               //保存格式
-		margin : "margin",
-		// 错误CSS className
-		error : "error"
+		canvas : "#canvas",               //canvas
+		upload : "#upload",               //上传图片
+		create : "#create",               //生成水印
+		download : "#download",           //下载
+		file : "#file",                   //上传控件
+		text : "#text",                   //水印文字
+		fontSize : "#fontSize",           //水印字号
+		fontFamily : "#fontFamily",       //水印字体
+		position : "#position",           //水印位置
+		margin : "#margin" ,              //水印距离图片边界的距离
+		color : "#color",                 //水印颜色
+		format : "#format"                //保存格式
 	}
 
-	var g = function (id) {
-		return typeof id === "string" ? document.getElementById(id) : null;
+	var query = function (seletor, context) {
+		context = context || document;
+		return context.querySelector(seletor);
 	}
 
-	var canvas = g(config.canvas);
+	var addEventListener = function (element, event, callback) {
+		if (element.addEventListener) {
+			element.addEventListener(event, callback, false);
+		} else if (element.attachEvent) {
+			element.attachEvent("on"+event, callback);
+		} else {
+			element["on"+event] = callback;
+		}
+	}
+
+	var log = function (msg) {
+		if (query("h1")) {
+			query("h1").innerHTML = msg;
+		}
+	}
+
+	var fadeIn = function (ele) {
+		if (typeof ele === "object" && ele.nodeType === 1) {
+			ele.style.opacity = 1;
+		}
+	}
+
+	var canvas = query(config.canvas);
 	var ctx = canvas.getContext("2d");
-	var image = new Image;
-	image.crossOrigin = "*";
+	var image = new Image();
+	var fileReader = new FileReader(),
+		file,
+		filename;
 
-	function draw(text, src) {
-		g(config.image).className = "";
+	var upload = function () {
+		file = query(config.file).files[0];
+		if (!file) {
+			log("请选择一张图片");
+			return;
+		}
+		if (/^image\/(?:png|jpeg|gif|bmp)$/.test(file.type)) {
+			filename = file.name
+			log("图片：" + filename);
+			fadeIn(query(config.create));
+			fadeIn(query(config.download));
+		} else {
+			log("你选择的不是图片，请选择一张图片");
+		}
+	}
+
+	var print = function (text) {
 		text = text || "";
-		image.src = src || "image.jpg";
+		if (!file) return;
+		fileReader.readAsDataURL(file);
+		fileReader.onload = function () {
+			image.src = this.result;
+		}
 		image.onload = function () {
 			canvas.width = image.width;
 			canvas.height = image.height;
+			var fontSize = _handleNumber(query(config.fontSize), image.width/20+10);
+			var fontFamily = query(config.fontFamily).value;
+			var color = query(config.color).value;
+			var position = getPosition(query(config.position).value);
 			ctx.save();
 			ctx.drawImage(image, 0, 0);
-			ctx.font = handleNumber(g(config.fontSize).value, "16") + "px " + g(config.fontFamily).value;
-			ctx.fillStyle = g(config.color).value;
-			var position = g(config.position).value;
-			ctx.textAlign = getPosition(position).align;
-			ctx.textBaseline = getPosition(position).baseline;
-			ctx.fillText(text, getPosition(position).x, getPosition(position).y);
+			ctx.font = fontSize + "px " + fontFamily;
+			ctx.fillStyle = color;
+			ctx.textAlign = position.align;
+			ctx.textBaseline = position.baseline;
+			ctx.fillText(text, position.x, position.y);
 			ctx.restore();
 		}
-		image.onerror = function () {
-			g(config.image).value = "无法加载图片";
-			g(config.image).className = config.error;
-			g(config.image).focus();
+	}
+
+	function _handleNumber(ele, num) {
+		var val = ele.value;
+		num = parseInt(num);
+		if (val === "") {
+			ele.value = num;
+			return num;
+		} else {
+			return /[^0-9]/.test(val) ? num : val;
 		}
 	}
-	draw();
 
-	function handleNumber(string, defaultValue) {
-		var temp = string || defaultValue.toString();
-		return /[^0-9]/.test(temp) ? defaultValue : temp;
-	}
+	addEventListener(query(config.upload), "click", function () {
+		query(config.file).click();
+	});
 
-	g(config.button).onclick = function () {
-		draw(g(config.text).value, g(config.image).value);
-	}
+	addEventListener(query(config.file), "change", function () {
+		upload();
+		print();
+	});
 
-	g(config.download).onclick = function () {
+	addEventListener(query(config.create), "click", function () {
+		print(query(config.text).value);
+	});
+
+	addEventListener(query(config.download), "click", function () {
 		if (!image.src) return;
-		var type = g(config.format).value;
+		var type = query(config.format).value;
 		var imageData = canvas.toDataURL(type).replace(_fixType(type),"image/octet-stream");
-		var filename = "watermark" + _getTime() + "." + type;
-		download(imageData, filename);
-	}
+		var _finalName = _fixFileName(filename) + _getTime() + "." + type;
+		var link = document.createElement("a");
+		link.href = imageData;
+		link.download = _finalName;
+		link.click();
+	}, false);
 
 	function _fixType(type) {
 		type = type.toLowerCase().replace(/jpg/,"jpeg");
-		return "image/" + type.match(/png|jpeg|bpm|gif/)[0];
+		return "image/" + type.match(/png|jpeg|bmp|gif/)[0];
+	}
+
+	function _fixFileName(filename) {
+		var pos = filename.lastIndexOf(".");
+		return filename.slice(0, pos);
 	}
 
 	function _getTime() {
@@ -85,7 +147,7 @@
 			s : now.getSeconds()
 		}
 		var _fixTime = function (time) {
-			return "-" + (time < 10 ? "0" + time : time);
+			return "_" + (time < 10 ? "0" + time : time);
 		}
 		for (var p in t) {
 			t[p] = _fixTime(t[p])
@@ -93,15 +155,8 @@
 		return t.y + t.mon + t.d + t.h + t.m + t.s;
 	}
 
-	function download(data, filename) {
-		var link = document.createElement("a");
-		link.href = data;
-		link.download = filename;
-		link.click();
-	}
-
 	function getPosition (position) {
-		var margin = handleNumber(g(config.margin).value, 5);
+		var margin = _handleNumber(query(config.margin), canvas.width/50 + 10);
 		return {
 			lefttop : {
 				align : "left",

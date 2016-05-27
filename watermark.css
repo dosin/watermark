@@ -1,44 +1,66 @@
-body, div, ol, select, option {
+
+body, h1, button, div, input, label, select, option {
 	margin: 0;
 	padding: 0;
 }
 
-canvas {
-	display: block;
+h1 {
+	font-size: 16px;
+	font-family: "Microsoft Yahei";
+	font-weight: 100;
 	margin: 10px;
 }
 
 button {
 	float: left;
-	margin-left: 10px;
 	padding: 10px;
+	margin: 0 0 10px 10px;
 	color: #fff;
-	background: #058;
 	border: 0;
 	outline: 0;
 	transition: all 0.3s;
 }
 
-button:hover {
+#upload {
+	background: #850;
+}
+
+#upload:hover {
+	background: #630;
+}
+
+#create {
+	background: #058;
+	opacity: 0;
+}
+
+#create:hover {
 	background: #036;
 }
 
 #download {
 	background: #085;
+	opacity: 0;
 }
 
 #download:hover {
 	background: #063;
 }
 
-.options {
+canvas {
 	clear: both;
-	padding: 10px 10px 0;
+	display: block;
+	margin: 0 0 10px 10px;
+	box-shadow: 0 0 10px #666;
 }
 
 label {
 	display: block;
-	margin-bottom: 20px;
+	margin: 0 0 10px 10px;
+}
+
+#file {
+	display: none;
 }
 
 input {
