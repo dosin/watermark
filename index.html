@@ -1,20 +1,21 @@
-
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+	<link rel="shorcut icon" href="favicon.ico">
 	<title>图片水印</title>
 	<link rel="stylesheet" href="watermark.css">
 </head>
 <body>
 	<h1>图片水印</h1>
-	<button id="upload">上传图片</button>
-	<button id="create">生成水印</button>
-	<button id="download">下载图片</button>
-	<canvas id="canvas" width="0" height="0">你的浏览器不支持canvas，请下载Chrome浏览器</canvas>
-	<input id="file" type="file">
-	<label for="text">水印文字<input id="text" type="text" maxlength="16" value="watermark"></label>
+	<button id="upload">上传</button>
+	<button id="download">下载</button>
+	<button id="rotate">旋转</button>
+	<div id="container">
+		<img id="image" src="" alt="">
+	</div>
+	<label for="text">水印文字<input id="text" type="text" maxlength="30"></label>
 	<label for="fontSize">水印字号<input id="fontSize" type="text"></label>
 	<label for="fontFamily">
 		水印字体<select id="fontFamily">
@@ -31,19 +32,19 @@
 			<option value="centertop">中上</option>
 			<option value="righttop">右上</option>
 			<option value="leftmiddle">左中</option>
-			<option value="centermiddle">中间</option>
+			<option value="centermiddle" selected="selected">中间</option>
 			<option value="rightmiddle">右中</option>
 			<option value="leftbottom">左下</option>
 			<option value="centerbottom">中下</option>
-			<option value="rightbottom" selected="selected">右下</option>
+			<option value="rightbottom">右下</option>
 		</select>
 	</label>
 	<label for="margin">水印距离图片边界的距离<input id="margin" type="text"></label>
 	<label for="color">水印颜色<input id="color" type="color" value="#ffffff"></label>
 	<label for="format">
 		保存格式<select id="format">
-			<option value="png" selected="selected">png</option>
-			<option value="jpg">jpg</option>
+			<option value="jpg" selected="selected">jpg</option>
+			<option value="png">png</option>
 			<option value="gif">gif</option>
 			<option value="bpm">bpm</option>
 		</select>

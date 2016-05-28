@@ -4,79 +4,82 @@ body, h1, button, div, input, label, select, option {
 	padding: 0;
 }
 
+body {
+	width: 300px;
+	padding: 20px;
+	font: lighter 16px "Microsoft Yahei";
+}
+
 h1 {
-	font-size: 16px;
-	font-family: "Microsoft Yahei";
-	font-weight: 100;
-	margin: 10px;
+	margin-bottom: 20px;
+	color: #333;
+	font-size: 20px;
+	font-weight: normal;
 }
 
 button {
 	float: left;
 	padding: 10px;
-	margin: 0 0 10px 10px;
+	margin: 0 20px 20px 0;
 	color: #fff;
 	border: 0;
 	outline: 0;
-	transition: all 0.3s;
+}
+
+button:hover {
+	box-shadow: 0 0 10px #666;
 }
 
 #upload {
-	background: #850;
+	background: #058;
 }
 
 #upload:hover {
-	background: #630;
-}
-
-#create {
-	background: #058;
-	opacity: 0;
-}
-
-#create:hover {
 	background: #036;
 }
 
 #download {
 	background: #085;
-	opacity: 0;
 }
 
 #download:hover {
 	background: #063;
 }
 
-canvas {
+#rotate {
+	background: #508;
+}
+
+#rotate:hover {
+	background: #306;
+}
+
+#container {
 	clear: both;
-	display: block;
-	margin: 0 0 10px 10px;
+	width: 100%;
+}
+
+#container img {
+	margin-bottom: 20px;
 	box-shadow: 0 0 10px #666;
 }
 
 label {
 	display: block;
-	margin: 0 0 10px 10px;
-}
-
-#file {
-	display: none;
+	width: 100%;
+	margin-bottom: 20px;
 }
 
 input {
 	outline: 0;
 	line-height: 1.5;
-	margin-left: 10px;
+	margin-left: 20px;
 }
 
 select {
-	margin-left: 10px;
+	margin-left: 20px;
 }
 
 #margin {
 	width: 50px;
-}
-
-.error {
-	color: #f00;
 }

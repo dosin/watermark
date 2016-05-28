@@ -1,12 +1,11 @@
 
-(function(global){
+// (function(global){
 
 	var config = {
-		canvas : "#canvas",               //canvas
-		upload : "#upload",               //上传图片
-		create : "#create",               //生成水印
+		upload : "#upload",               //上传
 		download : "#download",           //下载
-		file : "#file",                   //上传控件
+		rotate : "#rotate",               //旋转
+		image : "#image",          	      //图片
 		text : "#text",                   //水印文字
 		fontSize : "#fontSize",           //水印字号
 		fontFamily : "#fontFamily",       //水印字体
@@ -16,84 +15,126 @@
 		format : "#format"                //保存格式
 	}
 
-	var query = function (seletor, context) {
-		context = context || document;
-		return context.querySelector(seletor);
+	var query = function (sel, ctx) {
+		ctx = ctx || document;
+		return ctx.querySelector(sel);
 	}
 
-	var addEventListener = function (element, event, callback) {
-		if (element.addEventListener) {
-			element.addEventListener(event, callback, false);
-		} else if (element.attachEvent) {
-			element.attachEvent("on"+event, callback);
-		} else {
-			element["on"+event] = callback;
+	var queryAll = function (sel, ctx) {
+		ctx = ctx || document;
+		return ctx.querySelectorAll(sel);
+	}
+
+	var forEach = function (arr, fn) {
+		for (var i = 0, len = arr.length; i < len; i++) {
+			fn(i, arr[i], arr);
 		}
 	}
 
+	var on = function (ele, types, fn) {
+		types = types.split(" ");
+		forEach(types, function (i, type) {
+			if (ele.addEventListener) {
+				ele.addEventListener(type, fn, false);
+			} else if (ele.attachEvent) {
+				ele.attachEvent("on"+type, fn);
+			} else {
+				ele["on"+type] = fn;
+			}
+		})
+	}
+
 	var log = function (msg) {
-		if (query("h1")) {
+		if (typeof msg === "string" && query("h1")) {
 			query("h1").innerHTML = msg;
 		}
 	}
 
 	var fadeIn = function (ele) {
 		if (typeof ele === "object" && ele.nodeType === 1) {
+			ele.style.transition = "all 0.3s";
 			ele.style.opacity = 1;
 		}
 	}
 
-	var canvas = query(config.canvas);
-	var ctx = canvas.getContext("2d");
-	var image = new Image();
-	var fileReader = new FileReader(),
-		file,
-		filename;
+	var canvas = document.createElement("canvas"),
+		ctx = canvas.getContext("2d");
+
+	var image = query(config.image),
+		originalData,
+		file;
+
+	var uploader = query("#uploader");
+	if (!uploader) {
+		uploader = document.createElement("input");
+		uploader.type = "file";
+		uploader.id = "uploader";
+	}
 
 	var upload = function () {
-		file = query(config.file).files[0];
+		file = uploader.files[0];
 		if (!file) {
 			log("请选择一张图片");
 			return;
 		}
 		if (/^image\/(?:png|jpeg|gif|bmp)$/.test(file.type)) {
-			filename = file.name
-			log("图片：" + filename);
-			fadeIn(query(config.create));
-			fadeIn(query(config.download));
+			log("图片：" + file.name + "<br>大小：" + _fixSize(file.size));
+			var fileReader = new FileReader();
+			fileReader.readAsDataURL(file);
+			fileReader.onload = function () {
+				var temp = new Image();
+				temp.src = this.result;
+				temp.onload = function () {
+					canvas.width = temp.width;
+					canvas.height = temp.height;
+					image.style.width = temp.width > 300 ? "100%" : "";
+					query(config.fontSize).value = parseInt(temp.width/20+10);
+					query(config.margin).value = parseInt(temp.width/50+10);
+					ctx.drawImage(temp, 0, 0);
+					image.src = originalData = temp.src;
+				}
+			}
 		} else {
 			log("你选择的不是图片，请选择一张图片");
 		}
 	}
 
-	var print = function (text) {
-		text = text || "";
-		if (!file) return;
-		fileReader.readAsDataURL(file);
-		fileReader.onload = function () {
-			image.src = this.result;
+	function _fixSize (num) {
+		var size;
+		if (num/1024 > 1024) {
+			size = (num/1024/1024).toFixed(2) + "M";
+		} else if (num < 1024) {
+			size = num + "b";
+		} else {
+			size = (num/1024).toFixed(2) + "k";
 		}
+		return size;
+	}
+
+	var create = function (text) {
+		if (!file) {
+			log("请先上传一张图片");
+			return;
+		}
+		image.src = originalData;
 		image.onload = function () {
-			canvas.width = image.width;
-			canvas.height = image.height;
-			var fontSize = _handleNumber(query(config.fontSize), image.width/20+10);
+			ctx.drawImage(image, 0, 0);
+			var fontSize = _fixNum(query(config.fontSize), parseInt(canvas.width/20+10));
 			var fontFamily = query(config.fontFamily).value;
 			var color = query(config.color).value;
 			var position = getPosition(query(config.position).value);
-			ctx.save();
-			ctx.drawImage(image, 0, 0);
 			ctx.font = fontSize + "px " + fontFamily;
 			ctx.fillStyle = color;
 			ctx.textAlign = position.align;
 			ctx.textBaseline = position.baseline;
-			ctx.fillText(text, position.x, position.y);
-			ctx.restore();
+			ctx.fillText(text || "", position.x, position.y);
+			image.src = canvas.toDataURL(file.type);
+			image.onload = null;
 		}
 	}
 
-	function _handleNumber(ele, num) {
+	function _fixNum(ele, num) {
 		var val = ele.value;
-		num = parseInt(num);
 		if (val === "") {
 			ele.value = num;
 			return num;
@@ -102,61 +143,118 @@
 		}
 	}
 
-	addEventListener(query(config.upload), "click", function () {
-		query(config.file).click();
+	var rotate = function () {
+		if (!file) {
+			log("请先上传一张图片");
+			return;
+		}
+		image.src = originalData;
+		image.onload = function () {
+			var x = canvas.width;
+			var y = canvas.height;
+			var imageData = ctx.getImageData(0, 0, x, y);
+			var temp1 = [];
+			for (var i = 0; i < x; i++) {
+				temp1[i] = [];
+				for (var j = 0; j < y; j++) {
+					temp1[i][j] = 0;
+				}
+			}
+			var temp2 = [];
+			for (var i = 0; i < y; i++) {
+				temp2[i] = [];
+				for (var j = 0; j < x; j++) {
+					temp2[i][j] = 0;
+				}
+			}
+			for (var i = 0, len = imageData.data.length; i < len; i+=4) {
+				temp1[i/4%x][Math.floor(i/4/x)] = [imageData.data[i], imageData.data[i+1], imageData.data[i+2], imageData.data[i+3]];
+			}
+			for (var i = 0; i < x; i++) {
+				for (var j = 0; j < y; j++) {
+					temp2[y-j-1][i] = temp1[i][j];
+				}
+			}
+			canvas.width = y;
+			canvas.height = x;
+			imageData = ctx.getImageData(0, 0, y, x);
+			for (var i = 0, len = imageData.data.length; i < len; i+=4) {
+				imageData.data[i] = temp2[i/4%y][Math.floor(i/4/y)][0];
+				imageData.data[i+1] = temp2[i/4%y][Math.floor(i/4/y)][1]; 
+				imageData.data[i+2] = temp2[i/4%y][Math.floor(i/4/y)][2];
+				imageData.data[i+3] = temp2[i/4%y][Math.floor(i/4/y)][3];
+			}
+			ctx.putImageData(imageData, 0, 0);
+			originalData = canvas.toDataURL(file.type);
+			create();
+		}
+	}
+
+	on(query(config.upload), "click", function () {
+		uploader.click();
 	});
 
-	addEventListener(query(config.file), "change", function () {
+	on(query("#rotate"), "click", function () {
+		rotate();
+	});
+
+	on(uploader, "change", function () {
 		upload();
-		print();
 	});
 
-	addEventListener(query(config.create), "click", function () {
-		print(query(config.text).value);
-	});
+	var nodeList = function () {
+		var arr = [],
+			ids = [config.text, config.fontSize, config.fontFamily, config.position, config.margin, config.color];
+		forEach(ids, function(i, id) {
+			arr[arr.length] = query(id);
+		})
+		return arr;
+	}
+	forEach(nodeList(), function (i, ele) {
+		on(ele, "change keyup", function () {
+			create(query(config.text).value);
+		});
+	})
 
-	addEventListener(query(config.download), "click", function () {
-		if (!image.src) return;
+	on(query(config.download), "click", function () {
+		if (!file) return;
 		var type = query(config.format).value;
-		var imageData = canvas.toDataURL(type).replace(_fixType(type),"image/octet-stream");
-		var _finalName = _fixFileName(filename) + _getTime() + "." + type;
+		var data = canvas.toDataURL(file.type).replace(_fixType(type),"image/octet-stream");
+		var name = _fixName(file.name) + _timestamp() + "." + type;
 		var link = document.createElement("a");
-		link.href = imageData;
-		link.download = _finalName;
+		link.href = data;
+		link.download = name;
 		link.click();
-	}, false);
+		link = null;
+	});
 
 	function _fixType(type) {
 		type = type.toLowerCase().replace(/jpg/,"jpeg");
 		return "image/" + type.match(/png|jpeg|bmp|gif/)[0];
 	}
 
-	function _fixFileName(filename) {
-		var pos = filename.lastIndexOf(".");
-		return filename.slice(0, pos);
+	function _fixName(name) {
+		var prefix = "-";
+		if (name.indexOf("_") !== -1) {
+			prefix = "_";
+		}
+		return name.slice(0, name.lastIndexOf(".")) + prefix;
 	}
 
-	function _getTime() {
-		var now = new Date();
-		var t = {
-			y : now.getFullYear(),
-			mon : now.getMonth() + 1,
-			d : now.getDate(),
-			h : now.getHours(),
-			m : now.getMinutes(),
-			s : now.getSeconds()
+	function _timestamp() {
+		var now = new Date(),
+			timestamp = "";
+		var _prefix = function (t) {
+			return t < 10 ? "0"+t : ""+t;
 		}
-		var _fixTime = function (time) {
-			return "_" + (time < 10 ? "0" + time : time);
-		}
-		for (var p in t) {
-			t[p] = _fixTime(t[p])
-		}
-		return t.y + t.mon + t.d + t.h + t.m + t.s;
+		forEach([now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()], function (i, val) {
+			timestamp += _prefix(val);
+		})
+		return timestamp;
 	}
 
 	function getPosition (position) {
-		var margin = _handleNumber(query(config.margin), canvas.width/50 + 10);
+		var margin = _fixNum(query(config.margin), parseInt(canvas.width/50+10));
 		return {
 			lefttop : {
 				align : "left",
@@ -215,6 +313,6 @@
 		}[position];
 	}
 
-	global.watermark = config;
+	// global.watermark = config;
 
-})(window);
+// })(window);
