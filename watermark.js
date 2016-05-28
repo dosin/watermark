@@ -3,9 +3,9 @@
 
 	var config = {
 		upload : "#upload",               //上传
-		download : "#download",           //下载
-		create : "#create",               //生成
 		rotate : "#rotate",               //旋转
+		create : "#create",               //生成
+		download : "#download",           //下载
 		image : "#image",          	      //图片
 		text : "#text",                   //水印文字
 		fontSize : "#fontSize",           //水印字号
@@ -38,6 +38,10 @@
 		}
 	}
 
+	var show = function (ele) {
+		ele.style.display = "inline-block";
+	}
+
 	var canvas = document.createElement("canvas");
 	var ctx = canvas.getContext("2d");
 
@@ -50,6 +54,10 @@
 		originalData;
 
 	uploader.onchange = upload;
+
+	query(config.upload).onclick = function () {
+		uploader.click();
+	}
 
 	function upload() {
 		file = uploader.files[0];
@@ -72,6 +80,9 @@
 					query(config.margin).value = parseInt(temp.width/50+10);
 					ctx.drawImage(temp, 0, 0);
 					image.src = originalData = temp.src;
+					show(query(config.rotate));
+					show(query(config.create));
+					show(query(config.download));
 				}
 			}
 		} else {
@@ -89,7 +100,22 @@
 		}
 	}
 
-	function create(text) {
+	query(config.create).onclick = create;
+
+	var eles = (function () {
+		var arr = [],
+			ids = ["text", "fontSize", "fontFamily", "position", "margin", "color"];
+		forEach(ids, function(i, id) {
+			arr[arr.length] = query(config[id]);
+		})
+		return arr;
+	})();
+	forEach(eles, function (i, ele) {
+		ele.onchange = create;
+		ele.onkeydown =create;
+	})
+
+	function create() {
 		if (!file) {
 			log("请先上传一张图片");
 			return;
@@ -105,7 +131,7 @@
 			ctx.fillStyle = color;
 			ctx.textAlign = position.align;
 			ctx.textBaseline = position.baseline;
-			ctx.fillText(text || "", position.x, position.y);
+			ctx.fillText(query(config.text).value || "", position.x, position.y);
 			image.src = canvas.toDataURL(file.type);
 			image.onload = null;
 		}
@@ -121,7 +147,7 @@
 		}
 	}
 
-	var rotate = function () {
+	query(config.rotate).onclick = function () {
 		if (!file) {
 			log("请先上传一张图片");
 			return;
@@ -147,7 +173,12 @@
 				}
 			}
 			for (var i = 0, len = imageData.data.length; i < len; i+=4) {
-				temp1[i/4%x][Math.floor(i/4/x)] = [imageData.data[i], imageData.data[i+1], imageData.data[i+2], imageData.data[i+3]];
+				temp1[i/4%x][Math.floor(i/4/x)] = [
+					imageData.data[i],
+					imageData.data[i+1],
+					imageData.data[i+2],
+					imageData.data[i+3]
+				];
 			}
 			for (var i = 0; i < x; i++) {
 				for (var j = 0; j < y; j++) {
@@ -166,41 +197,21 @@
 			ctx.putImageData(imageData, 0, 0);
 			originalData = canvas.toDataURL(file.type);
 			create();
+			image.onload = null;
 		}
 	}
-
-	query(config.upload).onclick = function () {
-		uploader.click();
-	}
-
-	query(config.rotate).onclick = function () {
-		rotate();
-	}
-
-	var nodeList = function () {
-		var arr = [],
-			ids = [config.text, config.fontSize, config.fontFamily, config.position, config.margin, config.color];
-		forEach(ids, function(i, id) {
-			arr[arr.length] = query(id);
-		})
-		return arr;
-	}
-	forEach(nodeList(), function (i, ele) {
-		ele.onchange = function () {
-			create(query(config.text).value);
-		}
-	})
 
 	query(config.download).onclick = function () {
 		if (!file) return;
-		var type = query(config.format).value;
-		var data = canvas.toDataURL(file.type).replace(_fixType(type),"image/octet-stream");
-		var name = _fixName(file.name) + _timestamp() + "." + type;
+		var type = _fixType(query(config.format).value);
+		var imageData = canvas.toDataURL(type)/*.replace(type,"image/octet-stream")*/;
+		open(imageData);
+		/*var name = _fixName(file.name) + _timestamp() + "." + type;
 		var link = document.createElement("a");
 		link.href = data;
 		link.download = name;
 		link.click();
-		link = null;
+		link = null;*/
 	}
 
 	function _fixType(type) {

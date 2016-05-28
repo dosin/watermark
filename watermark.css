@@ -11,17 +11,16 @@ body {
 }
 
 h1 {
-	margin-bottom: 20px;
 	color: #333;
 	font-size: 24px;
 	font-weight: normal;
 }
 
 button {
-	float: left;
+	display: none;
 	padding: 10px 20px;
 	font-size: 16px;
-	margin: 0 20px 20px 0;
+	margin: 10px 20px 0 0;
 	color: #fff;
 	border: 0;
 	outline: 0;
@@ -32,6 +31,7 @@ button:hover {
 }
 
 #upload {
+	display: block;
 	background: #058;
 }
 
@@ -69,7 +69,7 @@ button:hover {
 }
 
 #container img {
-	margin-bottom: 20px;
+	margin-top: 10px;
 	box-shadow: 0 0 10px #666;
 }
 
@@ -77,17 +77,23 @@ label {
 	clear: both;
 	display: block;
 	width: 100%;
-	margin-bottom: 20px;
+	margin-top: 10px;
 }
 
 input {
 	outline: 0;
 	line-height: 1.5;
 	margin-left: 20px;
+	padding: 5px;
 }
 
 select {
 	margin-left: 20px;
+	padding: 5px;
+}
+
+option {
+	height: 30px;
 }
 
 #margin {
