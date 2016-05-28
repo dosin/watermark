@@ -112,7 +112,6 @@
 	})();
 	forEach(eles, function (i, ele) {
 		ele.onchange = create;
-		ele.onkeydown =create;
 	})
 
 	function create() {
