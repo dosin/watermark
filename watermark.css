@@ -6,20 +6,21 @@ body, h1, button, div, input, label, select, option {
 
 body {
 	width: 300px;
-	padding: 20px;
+	padding: 10px;
 	font: lighter 16px "Microsoft Yahei";
 }
 
 h1 {
 	margin-bottom: 20px;
 	color: #333;
-	font-size: 20px;
+	font-size: 24px;
 	font-weight: normal;
 }
 
 button {
 	float: left;
-	padding: 10px;
+	padding: 10px 20px;
+	font-size: 16px;
 	margin: 0 20px 20px 0;
 	color: #fff;
 	border: 0;
@@ -36,6 +37,14 @@ button:hover {
 
 #upload:hover {
 	background: #036;
+}
+
+#create {
+	background: #805;
+}
+
+#create:hover {
+	background: #603;
 }
 
 #download {
@@ -65,6 +74,7 @@ button:hover {
 }
 
 label {
+	clear: both;
 	display: block;
 	width: 100%;
 	margin-bottom: 20px;

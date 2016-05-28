@@ -4,6 +4,7 @@
 	var config = {
 		upload : "#upload",               //上传
 		download : "#download",           //下载
+		create : "#create",               //生成
 		rotate : "#rotate",               //旋转
 		image : "#image",          	      //图片
 		text : "#text",                   //水印文字
@@ -31,47 +32,26 @@
 		}
 	}
 
-	var on = function (ele, types, fn) {
-		types = types.split(" ");
-		forEach(types, function (i, type) {
-			if (ele.addEventListener) {
-				ele.addEventListener(type, fn, false);
-			} else if (ele.attachEvent) {
-				ele.attachEvent("on"+type, fn);
-			} else {
-				ele["on"+type] = fn;
-			}
-		})
-	}
-
 	var log = function (msg) {
 		if (typeof msg === "string" && query("h1")) {
 			query("h1").innerHTML = msg;
 		}
 	}
 
-	var fadeIn = function (ele) {
-		if (typeof ele === "object" && ele.nodeType === 1) {
-			ele.style.transition = "all 0.3s";
-			ele.style.opacity = 1;
-		}
-	}
+	var canvas = document.createElement("canvas");
+	var ctx = canvas.getContext("2d");
 
-	var canvas = document.createElement("canvas"),
-		ctx = canvas.getContext("2d");
+	var image = query(config.image);
 
-	var image = query(config.image),
-		originalData,
-		file;
-
-	var uploader = query("#uploader");
-	if (!uploader) {
-		uploader = document.createElement("input");
+	var uploader = document.createElement("input");
 		uploader.type = "file";
 		uploader.id = "uploader";
-	}
+	var file,
+		originalData;
 
-	var upload = function () {
+	uploader.onchange = upload;
+
+	function upload() {
 		file = uploader.files[0];
 		if (!file) {
 			log("请选择一张图片");
@@ -99,19 +79,17 @@
 		}
 	}
 
-	function _fixSize (num) {
-		var size;
-		if (num/1024 > 1024) {
-			size = (num/1024/1024).toFixed(2) + "M";
-		} else if (num < 1024) {
-			size = num + "b";
+	function _fixSize (size) {
+		if (size/1024 > 1024) {
+			return (size/1024/1024).toFixed(2) + "M";
+		} else if (size < 1024) {
+			return size + "b";
 		} else {
-			size = (num/1024).toFixed(2) + "k";
+			return (size/1024).toFixed(2) + "k";
 		}
-		return size;
 	}
 
-	var create = function (text) {
+	function create(text) {
 		if (!file) {
 			log("请先上传一张图片");
 			return;
@@ -152,6 +130,7 @@
 		image.onload = function () {
 			var x = canvas.width;
 			var y = canvas.height;
+			ctx.drawImage(image, 0, 0);
 			var imageData = ctx.getImageData(0, 0, x, y);
 			var temp1 = [];
 			for (var i = 0; i < x; i++) {
@@ -190,17 +169,13 @@
 		}
 	}
 
-	on(query(config.upload), "click", function () {
+	query(config.upload).onclick = function () {
 		uploader.click();
-	});
+	}
 
-	on(query("#rotate"), "click", function () {
+	query(config.rotate).onclick = function () {
 		rotate();
-	});
-
-	on(uploader, "change", function () {
-		upload();
-	});
+	}
 
 	var nodeList = function () {
 		var arr = [],
@@ -211,12 +186,12 @@
 		return arr;
 	}
 	forEach(nodeList(), function (i, ele) {
-		on(ele, "change keyup", function () {
+		ele.onchange = function () {
 			create(query(config.text).value);
-		});
+		}
 	})
 
-	on(query(config.download), "click", function () {
+	query(config.download).onclick = function () {
 		if (!file) return;
 		var type = query(config.format).value;
 		var data = canvas.toDataURL(file.type).replace(_fixType(type),"image/octet-stream");
@@ -226,7 +201,7 @@
 		link.download = name;
 		link.click();
 		link = null;
-	});
+	}
 
 	function _fixType(type) {
 		type = type.toLowerCase().replace(/jpg/,"jpeg");
