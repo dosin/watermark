@@ -16,24 +16,25 @@
 		format : "#format"                //保存格式
 	}
 
-	var query = function (sel, ctx) {
-		ctx = ctx || document;
-		return ctx.querySelector(sel);
+	var query = function (selector, context) {
+		return (context || document).querySelector(selector);
 	}
 
-	var queryAll = function (sel, ctx) {
-		ctx = ctx || document;
-		return ctx.querySelectorAll(sel);
+	var queryAll = function (selector, context) {
+		return (context || document).querySelectorAll(selector);
 	}
 
 	var forEach = function (arr, fn) {
+		if (Object.prototype.toString.call(arr) !== "[object Array]" ) {
+			return "First argument are expected to be an Array"
+		}
 		for (var i = 0, len = arr.length; i < len; i++) {
 			fn(i, arr[i], arr);
 		}
 	}
 
 	var log = function (msg) {
-		if (typeof msg === "string" && query("h1")) {
+		if (query("h1") && typeof msg === "string") {
 			query("h1").innerHTML = msg;
 		}
 	}
@@ -42,14 +43,13 @@
 		ele.style.display = "inline-block";
 	}
 
-	var canvas = document.createElement("canvas");
-	var ctx = canvas.getContext("2d");
+	var cvs = document.createElement("canvas");
+	var ctx = cvs.getContext("2d");
 
 	var image = query(config.image);
 
 	var uploader = document.createElement("input");
 		uploader.type = "file";
-		uploader.id = "uploader";
 	var file,
 		originalData;
 
@@ -62,31 +62,29 @@
 	function upload() {
 		file = uploader.files[0];
 		if (!file) {
-			log("请选择一张图片");
+			log("请上传一张图片");
 			return;
 		}
-		if (/^image\/(?:png|jpeg|gif|bmp)$/.test(file.type)) {
+		if (/^image\/png|jpeg|gif|bmp$/.test(file.type)) {
 			log("图片：" + file.name + "<br>大小：" + _fixSize(file.size));
 			var fileReader = new FileReader();
 			fileReader.readAsDataURL(file);
 			fileReader.onload = function () {
 				var temp = new Image();
-				temp.src = this.result;
+				originalData = temp.src = this.result;
 				temp.onload = function () {
-					canvas.width = temp.width;
-					canvas.height = temp.height;
-					image.style.width = temp.width > 300 ? "100%" : "";
+					cvs.width = temp.width;
+					cvs.height = temp.height;
 					query(config.fontSize).value = parseInt(temp.width/20+10);
 					query(config.margin).value = parseInt(temp.width/50+10);
-					ctx.drawImage(temp, 0, 0);
-					image.src = originalData = temp.src;
 					show(query(config.rotate));
 					show(query(config.create));
 					show(query(config.download));
+					create();
 				}
 			}
 		} else {
-			log("你选择的不是图片，请选择一张图片");
+			log("你上传的不是图片，请上传一张图片");
 		}
 	}
 
@@ -115,14 +113,12 @@
 	})
 
 	function create() {
-		if (!file) {
-			log("请先上传一张图片");
-			return;
-		}
-		image.src = originalData;
-		image.onload = function () {
-			ctx.drawImage(image, 0, 0);
-			var fontSize = _fixNum(query(config.fontSize), parseInt(canvas.width/20+10));
+		if (!file) return;
+		var temp = new Image();
+		temp.src = originalData;
+		temp.onload = function () {
+			ctx.drawImage(temp, 0, 0);
+			var fontSize = _fixNum(query(config.fontSize), parseInt(cvs.width/20+10));
 			var fontFamily = query(config.fontFamily).value;
 			var color = query(config.color).value;
 			var position = getPosition(query(config.position).value);
@@ -131,8 +127,8 @@
 			ctx.textAlign = position.align;
 			ctx.textBaseline = position.baseline;
 			ctx.fillText(query(config.text).value || "", position.x, position.y);
-			image.src = canvas.toDataURL(file.type);
-			image.onload = null;
+			image.src = cvs.toDataURL(file.type);
+			image.style.width = temp.width > container.offsetWidth ? "100%" : "";
 		}
 	}
 
@@ -147,70 +143,67 @@
 	}
 
 	query(config.rotate).onclick = function () {
-		if (!file) {
-			log("请先上传一张图片");
-			return;
-		}
-		image.src = originalData;
-		image.onload = function () {
-			var x = canvas.width;
-			var y = canvas.height;
-			ctx.drawImage(image, 0, 0);
-			var imageData = ctx.getImageData(0, 0, x, y);
-			var temp1 = [];
+		if (!file) return;
+		var temp = new Image();
+		temp.src = originalData;
+		temp.onload = function () {
+			var x = cvs.width;
+			var y = cvs.height;
+			ctx.drawImage(temp, 0, 0);
+			var tempData = ctx.getImageData(0, 0, x, y);
+			var beforeRotate = [];
 			for (var i = 0; i < x; i++) {
-				temp1[i] = [];
-				for (var j = 0; j < y; j++) {
-					temp1[i][j] = 0;
-				}
+				beforeRotate[i] = [];
+				/*for (var j = 0; j < y; j++) {
+					beforeRotate[i][j] = 0;
+				}*/
 			}
-			var temp2 = [];
+			var afterRotate = [];
 			for (var i = 0; i < y; i++) {
-				temp2[i] = [];
-				for (var j = 0; j < x; j++) {
-					temp2[i][j] = 0;
-				}
+				afterRotate[i] = [];
+				/*for (var j = 0; j < x; j++) {
+					afterRotate[i][j] = 0;
+				}*/
 			}
-			for (var i = 0, len = imageData.data.length; i < len; i+=4) {
-				temp1[i/4%x][Math.floor(i/4/x)] = [
-					imageData.data[i],
-					imageData.data[i+1],
-					imageData.data[i+2],
-					imageData.data[i+3]
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				beforeRotate[i/4%x][Math.floor(i/4/x)] = [
+					tempData.data[i],
+					tempData.data[i+1],
+					tempData.data[i+2],
+					tempData.data[i+3]
 				];
 			}
 			for (var i = 0; i < x; i++) {
 				for (var j = 0; j < y; j++) {
-					temp2[y-j-1][i] = temp1[i][j];
+					afterRotate[y-j-1][i] = beforeRotate[i][j];
 				}
 			}
-			canvas.width = y;
-			canvas.height = x;
-			imageData = ctx.getImageData(0, 0, y, x);
-			for (var i = 0, len = imageData.data.length; i < len; i+=4) {
-				imageData.data[i] = temp2[i/4%y][Math.floor(i/4/y)][0];
-				imageData.data[i+1] = temp2[i/4%y][Math.floor(i/4/y)][1]; 
-				imageData.data[i+2] = temp2[i/4%y][Math.floor(i/4/y)][2];
-				imageData.data[i+3] = temp2[i/4%y][Math.floor(i/4/y)][3];
+			cvs.width = y;
+			cvs.height = x;
+			tempData = ctx.getImageData(0, 0, y, x);
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				tempData.data[i] = afterRotate[i/4%y][Math.floor(i/4/y)][0];
+				tempData.data[i+1] = afterRotate[i/4%y][Math.floor(i/4/y)][1]; 
+				tempData.data[i+2] = afterRotate[i/4%y][Math.floor(i/4/y)][2];
+				tempData.data[i+3] = afterRotate[i/4%y][Math.floor(i/4/y)][3];
 			}
-			ctx.putImageData(imageData, 0, 0);
-			originalData = canvas.toDataURL(file.type);
+			ctx.putImageData(tempData, 0, 0);
+			originalData = cvs.toDataURL(file.type);
 			create();
-			image.onload = null;
 		}
 	}
 
 	query(config.download).onclick = function () {
 		if (!file) return;
-		var type = _fixType(query(config.format).value);
-		var imageData = canvas.toDataURL(type)/*.replace(type,"image/octet-stream")*/;
-		open(imageData);
-		/*var name = _fixName(file.name) + _timestamp() + "." + type;
+		open(cvs.toDataURL(query(config.format).value));
+		/*var type = query(config.format).value;
+		var name = _fixName(file.name) + _timestamp() + "." + type;
+		type = _fixType(type);
+		var imageData = cvs.toDataURL(type).replace(type,"image/octet-stream");
 		var link = document.createElement("a");
-		link.href = data;
+		link.href = imageData;
 		link.download = name;
-		link.click();
-		link = null;*/
+		link.click();*/
 	}
 
 	function _fixType(type) {
@@ -239,7 +232,7 @@
 	}
 
 	function getPosition (position) {
-		var margin = _fixNum(query(config.margin), parseInt(canvas.width/50+10));
+		var margin = _fixNum(query(config.margin), parseInt(cvs.width/50+10));
 		return {
 			lefttop : {
 				align : "left",
@@ -250,50 +243,50 @@
 			centertop : {
 				align : "center",
 				baseline : "top",
-				x : canvas.width/2,
+				x : cvs.width/2,
 				y : 5
 			},
 			righttop : {
 				align : "right",
 				baseline : "top",
-				x : canvas.width-margin,
+				x : cvs.width-margin,
 				y : margin
 			},
 			leftmiddle : {
 				align : "left",
 				baseline : "middle",
 				x : margin,
-				y : canvas.height/2
+				y : cvs.height/2
 			},
 			centermiddle : {
 				align : "center",
 				baseline : "middle",
-				x : canvas.width/2,
-				y : canvas.height/2
+				x : cvs.width/2,
+				y : cvs.height/2
 			},
 			rightmiddle : {
 				align : "right",
 				baseline : "middle",
-				x : canvas.width-margin,
-				y : canvas.height/2
+				x : cvs.width-margin,
+				y : cvs.height/2
 			},
 			leftbottom : {
 				align : "left",
 				baseline : "bottom",
 				x : margin,
-				y : canvas.height-margin
+				y : cvs.height-margin
 			},
 			centerbottom : {
 				align : "center",
 				baseline : "bottom",
-				x : canvas.width/2,
-				y : canvas.height-margin
+				x : cvs.width/2,
+				y : cvs.height-margin
 			},
 			rightbottom : {
 				align : "right",
 				baseline : "bottom",
-				x : canvas.width-margin,
-				y : canvas.height-margin
+				x : cvs.width-margin,
+				y : cvs.height-margin
 			}
 		}[position];
 	}
