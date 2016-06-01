@@ -1,13 +1,12 @@
 
-body, h1, button, div, input, label, select, option {
+body, h1, button, div, input, select, option {
 	margin: 0;
 	padding: 0;
 }
 
 body {
-	width: 300px;
-	padding: 10px;
-	font: lighter 16px "Microsoft Yahei";
+	padding: 20px;
+	font: lighter 20px Tahoma,"Microsoft Yahei",sans-serif;
 }
 
 h1 {
@@ -20,47 +19,53 @@ button {
 	border: 0;
 	outline: 0;
 	display: none;
-	padding: 10px 20px;
 	font-size: 16px;
-	margin: 10px 20px 0 0;
-	color: #fff;
-}
-
-button:hover {
-	box-shadow: 0 0 10px #666;
+	padding: 10px 20px;
+	margin: 20px 20px 0 0;
+	background: #fff;
+	border: 1px solid #fff;
+	transition: all 0.1s;
 }
 
 #upload {
-	display: block;
-	background: #058;
+	display: inline-block;
+	color: #4295f4;
+	border-color: #4295f4;
 }
 
 #upload:hover {
-	background: #036;
-}
-
-#create {
-	background: #805;
-}
-
-#create:hover {
-	background: #603;
-}
-
-#download {
-	background: #085;
-}
-
-#download:hover {
-	background: #063;
+	color: #fff;
+	background: #4285f4;
 }
 
 #rotate {
-	background: #508;
+	color: #fbbc05;
+	border-color: #fbbc05;
 }
 
 #rotate:hover {
-	background: #306;
+	color: #fff;
+	background: #fbbc05;
+}
+
+#print {
+	color: #ea4335;
+	border-color: #ea4335;
+}
+
+#print:hover {
+	color: #fff;
+	background: #ea4335;
+}
+
+#save {
+	color: #34a853;
+	border-color: #34a853;
+}
+
+#save:hover {
+	color: #fff;
+	background: #34a853;
 }
 
 #container {
@@ -69,33 +74,29 @@ button:hover {
 }
 
 #container img {
-	margin-top: 10px;
+	margin-top: 20px;
 	box-shadow: 0 0 10px #666;
 }
 
-label {
+.settings {
 	clear: both;
-	display: block;
-	width: 100%;
-	margin-top: 10px;
+}
+
+.setting {
+	position: relative;
+	margin-top: 20px;
 }
 
 input {
 	outline: 0;
 	line-height: 1.5;
 	margin-left: 20px;
-	padding: 5px;
+	padding: 5px 10px;
+	font-size: 16px;
 }
 
 select {
 	margin-left: 20px;
+	font-size: 16px;
 	padding: 5px;
-}
-
-option {
-	height: 30px;
-}
-
-#margin {
-	width: 50px;
 }

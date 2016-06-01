@@ -8,48 +8,49 @@
 	<link rel="stylesheet" href="watermark.css">
 </head>
 <body>
-	<h1>图片水印 <small>ver 3.3</small></h1>
+	<h1>图片水印 <small>ver 3.4</small></h1>
 	<button id="upload">上传</button>
+	<button id="rotate">旋转</button>
 	<div id="container">
 		<img id="image" src="" alt="">
 	</div>
-	<button id="rotate">旋转</button>
-	<button id="create">生成</button>
-	<button id="download">下载</button>
-	<label for="text">水印文字<input id="text" type="text" maxlength="30"></label>
-	<label for="fontSize">水印字号<input id="fontSize" type="text"></label>
-	<label for="fontFamily">
-		水印字体<select id="fontFamily">
-			<option value="SimSun">宋体</option>
-			<option value="FangSong">仿宋</option>
-			<option value="KaiTi">楷体</option>
-			<option value="SimHei">黑体</option>
-			<option value="Microsoft Yahei" selected="selected">微软雅黑</option>
-		</select>
-	</label>
-	<label for="position">
-		水印位置<select id="position">
-			<option value="lefttop">左上</option>
-			<option value="centertop">中上</option>
-			<option value="righttop">右上</option>
-			<option value="leftmiddle">左中</option>
-			<option value="centermiddle" selected="selected">中间</option>
-			<option value="rightmiddle">右中</option>
-			<option value="leftbottom">左下</option>
-			<option value="centerbottom">中下</option>
-			<option value="rightbottom">右下</option>
-		</select>
-	</label>
-	<label for="margin">水印距离图片边界的距离<input id="margin" type="text"></label>
-	<label for="color">水印颜色<input id="color" type="color" value="#ffffff"></label>
-	<label for="format">
-		保存格式<select id="format">
-			<option value="jpg">jpg</option>
-			<option value="png" selected="selected">png</option>
-			<option value="gif">gif</option>
-			<option value="bmp">bmp</option>
-		</select>
-	</label>
+	<button id="print">添加水印</button>
+	<button id="save">保存</button>
+	<div class="settings">
+		<div class="setting">
+			文字<input id="text" type="text">
+		</div>
+		<div class="setting">
+			字号<input id="fontSize" type="text">
+		</div>
+		<div class="setting">
+			颜色<input id="color" type="color" value="#ffffff">
+		</div>
+		<div class="setting">
+			字体<select id="fontFamily">
+				<option value="Arial">Arial</option>
+				<option value="Tahoma">Tahoma</option>
+				<option value="sans-serif">sans-serif</option>
+				<option value="Microsoft Yahei" selected="selected">微软雅黑</option>
+			</select>
+		</div>
+		<div class="setting">
+			位置<select id="position">
+				<option value="lefttop">左上</option>
+				<option value="centertop">中上</option>
+				<option value="righttop">右上</option>
+				<option value="leftmiddle">左中</option>
+				<option value="centermiddle" selected="selected">中间</option>
+				<option value="rightmiddle">右中</option>
+				<option value="leftbottom">左下</option>
+				<option value="centerbottom">中下</option>
+				<option value="rightbottom">右下</option>
+			</select>
+		</div>
+		<div class="setting">
+			边距<input id="margin" type="text">
+		</div>
+	</div>
 	<script src="watermark.js"></script>
 </body>
 </html>

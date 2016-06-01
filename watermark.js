@@ -1,19 +1,18 @@
 
-// (function(global){
+(function(global){
 
 	var config = {
 		upload : "#upload",               //上传
 		rotate : "#rotate",               //旋转
-		create : "#create",               //生成
-		download : "#download",           //下载
+		print : "#print",                 //添加水印
+		save : "#save",                   //保存
 		image : "#image",          	      //图片
-		text : "#text",                   //水印文字
-		fontSize : "#fontSize",           //水印字号
-		fontFamily : "#fontFamily",       //水印字体
-		position : "#position",           //水印位置
-		margin : "#margin" ,              //水印距离图片边界的距离
-		color : "#color",                 //水印颜色
-		format : "#format"                //保存格式
+		text : "#text",                   //文字
+		fontSize : "#fontSize",           //字号
+		color : "#color",                 //颜色
+		fontFamily : "#fontFamily",       //字体
+		position : "#position",           //位置
+		margin : "#margin" ,              //边距
 	}
 
 	var query = function (selector, context) {
@@ -66,7 +65,7 @@
 			return;
 		}
 		if (/^image\/png|jpeg|gif|bmp$/.test(file.type)) {
-			log("图片：" + file.name + "<br>大小：" + _fixSize(file.size));
+			log("图片信息<br/>文件：" + file.name + "<br/>大小：" + _fixSize(file.size));
 			var fileReader = new FileReader();
 			fileReader.readAsDataURL(file);
 			fileReader.onload = function () {
@@ -78,9 +77,9 @@
 					query(config.fontSize).value = parseInt(temp.width/20+10);
 					query(config.margin).value = parseInt(temp.width/50+10);
 					show(query(config.rotate));
-					show(query(config.create));
-					show(query(config.download));
-					create();
+					show(query(config.print));
+					show(query(config.save));
+					print();
 				}
 			}
 		} else {
@@ -98,7 +97,52 @@
 		}
 	}
 
-	query(config.create).onclick = create;
+	query(config.rotate).onclick = function () {
+		if (!file) return;
+		var temp = new Image();
+		temp.src = originalData;
+		temp.onload = function () {
+			var x = cvs.width;
+			var y = cvs.height;
+			ctx.drawImage(temp, 0, 0);
+			var tempData = ctx.getImageData(0, 0, x, y);
+			var beforeRotate = [];
+			for (var i = 0; i < x; i++) {
+				beforeRotate[i] = [];
+			}
+			var afterRotate = [];
+			for (var i = 0; i < y; i++) {
+				afterRotate[i] = [];
+			}
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				beforeRotate[i/4%x][Math.floor(i/4/x)] = [
+					tempData.data[i],
+					tempData.data[i+1],
+					tempData.data[i+2],
+					tempData.data[i+3]
+				];
+			}
+			for (var i = 0; i < x; i++) {
+				for (var j = 0; j < y; j++) {
+					afterRotate[y-j-1][i] = beforeRotate[i][j];
+				}
+			}
+			cvs.width = y;
+			cvs.height = x;
+			tempData = ctx.getImageData(0, 0, y, x);
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				tempData.data[i] = afterRotate[i/4%y][Math.floor(i/4/y)][0];
+				tempData.data[i+1] = afterRotate[i/4%y][Math.floor(i/4/y)][1]; 
+				tempData.data[i+2] = afterRotate[i/4%y][Math.floor(i/4/y)][2];
+				tempData.data[i+3] = afterRotate[i/4%y][Math.floor(i/4/y)][3];
+			}
+			ctx.putImageData(tempData, 0, 0);
+			originalData = cvs.toDataURL(file.type);
+			print();
+		}
+	}
+
+	query(config.print).onclick = print;
 
 	var eles = (function () {
 		var arr = [],
@@ -109,10 +153,10 @@
 		return arr;
 	})();
 	forEach(eles, function (i, ele) {
-		ele.onchange = create;
+		ele.onchange = print;
 	})
 
-	function create() {
+	function print() {
 		if (!file) return;
 		var temp = new Image();
 		temp.src = originalData;
@@ -142,95 +186,6 @@
 		}
 	}
 
-	query(config.rotate).onclick = function () {
-		if (!file) return;
-		var temp = new Image();
-		temp.src = originalData;
-		temp.onload = function () {
-			var x = cvs.width;
-			var y = cvs.height;
-			ctx.drawImage(temp, 0, 0);
-			var tempData = ctx.getImageData(0, 0, x, y);
-			var beforeRotate = [];
-			for (var i = 0; i < x; i++) {
-				beforeRotate[i] = [];
-				/*for (var j = 0; j < y; j++) {
-					beforeRotate[i][j] = 0;
-				}*/
-			}
-			var afterRotate = [];
-			for (var i = 0; i < y; i++) {
-				afterRotate[i] = [];
-				/*for (var j = 0; j < x; j++) {
-					afterRotate[i][j] = 0;
-				}*/
-			}
-			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
-				beforeRotate[i/4%x][Math.floor(i/4/x)] = [
-					tempData.data[i],
-					tempData.data[i+1],
-					tempData.data[i+2],
-					tempData.data[i+3]
-				];
-			}
-			for (var i = 0; i < x; i++) {
-				for (var j = 0; j < y; j++) {
-					afterRotate[y-j-1][i] = beforeRotate[i][j];
-				}
-			}
-			cvs.width = y;
-			cvs.height = x;
-			tempData = ctx.getImageData(0, 0, y, x);
-			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
-				tempData.data[i] = afterRotate[i/4%y][Math.floor(i/4/y)][0];
-				tempData.data[i+1] = afterRotate[i/4%y][Math.floor(i/4/y)][1]; 
-				tempData.data[i+2] = afterRotate[i/4%y][Math.floor(i/4/y)][2];
-				tempData.data[i+3] = afterRotate[i/4%y][Math.floor(i/4/y)][3];
-			}
-			ctx.putImageData(tempData, 0, 0);
-			originalData = cvs.toDataURL(file.type);
-			create();
-		}
-	}
-
-	query(config.download).onclick = function () {
-		if (!file) return;
-		open(cvs.toDataURL(query(config.format).value));
-		/*var type = query(config.format).value;
-		var name = _fixName(file.name) + _timestamp() + "." + type;
-		type = _fixType(type);
-		var imageData = cvs.toDataURL(type).replace(type,"image/octet-stream");
-		var link = document.createElement("a");
-		link.href = imageData;
-		link.download = name;
-		link.click();*/
-	}
-
-	function _fixType(type) {
-		type = type.toLowerCase().replace(/jpg/,"jpeg");
-		return "image/" + type.match(/png|jpeg|bmp|gif/)[0];
-	}
-
-	function _fixName(name) {
-		var prefix = "-";
-		if (name.indexOf("_") !== -1) {
-			prefix = "_";
-		}
-		return name.slice(0, name.lastIndexOf(".")) + prefix;
-	}
-
-	function _timestamp() {
-		var now = new Date(),
-			timestamp = "";
-		var _prefix = function (t) {
-			return t < 10 ? "0"+t : ""+t;
-		}
-		forEach([now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()], function (i, val) {
-			timestamp += _prefix(val);
-		})
-		return timestamp;
-	}
-
 	function getPosition (position) {
 		var margin = _fixNum(query(config.margin), parseInt(cvs.width/50+10));
 		return {
@@ -244,7 +199,7 @@
 				align : "center",
 				baseline : "top",
 				x : cvs.width/2,
-				y : 5
+				y : margin
 			},
 			righttop : {
 				align : "right",
@@ -291,6 +246,11 @@
 		}[position];
 	}
 
-	// global.watermark = config;
+	query(config.save).onclick = function () {
+		if (!file) return;
+		open(cvs.toDataURL(file.type));
+	}
 
-// })(window);
+	global.watermark = config;
+
+})(window);
