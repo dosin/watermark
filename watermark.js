@@ -4,6 +4,7 @@
 	var config = {
 		upload : "#upload",               //上传
 		rotate : "#rotate",               //旋转
+		flip : "#flip",                   //翻转
 		print : "#print",                 //添加水印
 		save : "#save",                   //保存
 		image : "#image",          	      //图片
@@ -25,7 +26,7 @@
 
 	var forEach = function (arr, fn) {
 		if (Object.prototype.toString.call(arr) !== "[object Array]" ) {
-			return "First argument are expected to be an Array"
+			throw TypeError("First Argument is expected to be an Array")
 		}
 		for (var i = 0, len = arr.length; i < len; i++) {
 			fn(i, arr[i], arr);
@@ -42,15 +43,15 @@
 		ele.style.display = "inline-block";
 	}
 
-	var cvs = document.createElement("canvas");
-	var ctx = cvs.getContext("2d");
+	var canvas = document.createElement("canvas");
+	var ctx = canvas.getContext("2d");
 
 	var image = query(config.image);
 
 	var uploader = document.createElement("input");
 		uploader.type = "file";
 	var file,
-		originalData;
+		fileData;
 
 	uploader.onchange = upload;
 
@@ -60,23 +61,21 @@
 
 	function upload() {
 		file = uploader.files[0];
-		if (!file) {
-			log("请上传一张图片");
-			return;
-		}
+		if (!file) return;
 		if (/^image\/png|jpeg|gif|bmp$/.test(file.type)) {
 			log("图片信息<br/>文件：" + file.name + "<br/>大小：" + _fixSize(file.size));
 			var fileReader = new FileReader();
 			fileReader.readAsDataURL(file);
 			fileReader.onload = function () {
 				var temp = new Image();
-				originalData = temp.src = this.result;
+				fileData = temp.src = this.result;
 				temp.onload = function () {
-					cvs.width = temp.width;
-					cvs.height = temp.height;
+					canvas.width = temp.width;
+					canvas.height = temp.height;
 					query(config.fontSize).value = parseInt(temp.width/20+10);
 					query(config.margin).value = parseInt(temp.width/50+10);
 					show(query(config.rotate));
+					show(query(config.flip));
 					show(query(config.print));
 					show(query(config.save));
 					print();
@@ -100,22 +99,22 @@
 	query(config.rotate).onclick = function () {
 		if (!file) return;
 		var temp = new Image();
-		temp.src = originalData;
+		temp.src = fileData;
 		temp.onload = function () {
-			var x = cvs.width;
-			var y = cvs.height;
+			var x = canvas.width;
+			var y = canvas.height;
 			ctx.drawImage(temp, 0, 0);
 			var tempData = ctx.getImageData(0, 0, x, y);
-			var beforeRotate = [];
+			var before = [];
 			for (var i = 0; i < x; i++) {
-				beforeRotate[i] = [];
+				before[i] = [];
 			}
-			var afterRotate = [];
+			var after = [];
 			for (var i = 0; i < y; i++) {
-				afterRotate[i] = [];
+				after[i] = [];
 			}
 			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
-				beforeRotate[i/4%x][Math.floor(i/4/x)] = [
+				before[i/4%x][Math.floor(i/4/x)] = [
 					tempData.data[i],
 					tempData.data[i+1],
 					tempData.data[i+2],
@@ -124,20 +123,59 @@
 			}
 			for (var i = 0; i < x; i++) {
 				for (var j = 0; j < y; j++) {
-					afterRotate[y-j-1][i] = beforeRotate[i][j];
+					after[y-j-1][i] = before[i][j];
 				}
 			}
-			cvs.width = y;
-			cvs.height = x;
+			canvas.width = y;
+			canvas.height = x;
 			tempData = ctx.getImageData(0, 0, y, x);
 			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
-				tempData.data[i] = afterRotate[i/4%y][Math.floor(i/4/y)][0];
-				tempData.data[i+1] = afterRotate[i/4%y][Math.floor(i/4/y)][1]; 
-				tempData.data[i+2] = afterRotate[i/4%y][Math.floor(i/4/y)][2];
-				tempData.data[i+3] = afterRotate[i/4%y][Math.floor(i/4/y)][3];
+				tempData.data[i] = after[i/4%y][Math.floor(i/4/y)][0];
+				tempData.data[i+1] = after[i/4%y][Math.floor(i/4/y)][1]; 
+				tempData.data[i+2] = after[i/4%y][Math.floor(i/4/y)][2];
+				tempData.data[i+3] = after[i/4%y][Math.floor(i/4/y)][3];
 			}
 			ctx.putImageData(tempData, 0, 0);
-			originalData = cvs.toDataURL(file.type);
+			fileData = canvas.toDataURL(file.type);
+			print();
+		}
+	}
+	query(config.flip).onclick = function () {
+		if (!file) return;
+		var temp = new Image();
+		temp.src = fileData;
+		temp.onload = function () {
+			var x = canvas.width;
+			var y = canvas.height;
+			ctx.drawImage(temp, 0, 0);
+			var tempData = ctx.getImageData(0, 0, x, y);
+			var before = [];
+			var after = [];
+			for (var i = 0; i < x; i++) {
+				before[i] = [];
+				after[i] = [];
+			}
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				before[i/4%x][Math.floor(i/4/x)] = [
+					tempData.data[i],
+					tempData.data[i+1],
+					tempData.data[i+2],
+					tempData.data[i+3]
+				];
+			}
+			for (var i = 0; i < x; i++) {
+				for (var j = 0; j < y; j++) {
+					after[x-i-1][j] = before[i][j];
+				}
+			}
+			for (var i = 0, len = tempData.data.length; i < len; i+=4) {
+				tempData.data[i] = after[i/4%x][Math.floor(i/4/x)][0];
+				tempData.data[i+1] = after[i/4%x][Math.floor(i/4/x)][1]; 
+				tempData.data[i+2] = after[i/4%x][Math.floor(i/4/x)][2];
+				tempData.data[i+3] = after[i/4%x][Math.floor(i/4/x)][3];
+			}
+			ctx.putImageData(tempData, 0, 0);
+			fileData = canvas.toDataURL(file.type);
 			print();
 		}
 	}
@@ -154,29 +192,29 @@
 	})();
 	forEach(eles, function (i, ele) {
 		ele.onchange = print;
-	})
+	});
 
 	function print() {
 		if (!file) return;
 		var temp = new Image();
-		temp.src = originalData;
+		temp.src = fileData;
 		temp.onload = function () {
 			ctx.drawImage(temp, 0, 0);
-			var fontSize = _fixNum(query(config.fontSize), parseInt(cvs.width/20+10));
+			var fontSize = _fixNumber(query(config.fontSize), parseInt(canvas.width/20+10));
 			var fontFamily = query(config.fontFamily).value;
 			var color = query(config.color).value;
-			var position = getPosition(query(config.position).value);
+			var position = _getPosition(query(config.position).value);
 			ctx.font = fontSize + "px " + fontFamily;
 			ctx.fillStyle = color;
 			ctx.textAlign = position.align;
 			ctx.textBaseline = position.baseline;
 			ctx.fillText(query(config.text).value || "", position.x, position.y);
-			image.src = cvs.toDataURL(file.type);
+			image.src = canvas.toDataURL(file.type);
 			image.style.width = temp.width > container.offsetWidth ? "100%" : "";
 		}
 	}
 
-	function _fixNum(ele, num) {
+	function _fixNumber(ele, num) {
 		var val = ele.value;
 		if (val === "") {
 			ele.value = num;
@@ -186,8 +224,8 @@
 		}
 	}
 
-	function getPosition (position) {
-		var margin = _fixNum(query(config.margin), parseInt(cvs.width/50+10));
+	function _getPosition (position) {
+		var margin = _fixNumber(query(config.margin), parseInt(canvas.width/50+10));
 		return {
 			lefttop : {
 				align : "left",
@@ -198,57 +236,57 @@
 			centertop : {
 				align : "center",
 				baseline : "top",
-				x : cvs.width/2,
+				x : canvas.width/2,
 				y : margin
 			},
 			righttop : {
 				align : "right",
 				baseline : "top",
-				x : cvs.width-margin,
+				x : canvas.width-margin,
 				y : margin
 			},
 			leftmiddle : {
 				align : "left",
 				baseline : "middle",
 				x : margin,
-				y : cvs.height/2
+				y : canvas.height/2
 			},
 			centermiddle : {
 				align : "center",
 				baseline : "middle",
-				x : cvs.width/2,
-				y : cvs.height/2
+				x : canvas.width/2,
+				y : canvas.height/2
 			},
 			rightmiddle : {
 				align : "right",
 				baseline : "middle",
-				x : cvs.width-margin,
-				y : cvs.height/2
+				x : canvas.width-margin,
+				y : canvas.height/2
 			},
 			leftbottom : {
 				align : "left",
 				baseline : "bottom",
 				x : margin,
-				y : cvs.height-margin
+				y : canvas.height-margin
 			},
 			centerbottom : {
 				align : "center",
 				baseline : "bottom",
-				x : cvs.width/2,
-				y : cvs.height-margin
+				x : canvas.width/2,
+				y : canvas.height-margin
 			},
 			rightbottom : {
 				align : "right",
 				baseline : "bottom",
-				x : cvs.width-margin,
-				y : cvs.height-margin
+				x : canvas.width-margin,
+				y : canvas.height-margin
 			}
 		}[position];
 	}
 
 	query(config.save).onclick = function () {
 		if (!file) return;
-		open(cvs.toDataURL(file.type));
+		open(canvas.toDataURL(file.type));
 	}
 
 	global.watermark = config;

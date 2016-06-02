@@ -7,6 +7,7 @@ body, h1, button, div, input, select, option {
 body {
 	padding: 20px;
 	font: lighter 20px Tahoma,"Microsoft Yahei",sans-serif;
+	background: #eee;
 }
 
 h1 {
@@ -22,50 +23,61 @@ button {
 	font-size: 16px;
 	padding: 10px 20px;
 	margin: 20px 20px 0 0;
-	background: #fff;
+	color: #fff;
 	border: 1px solid #fff;
 	transition: all 0.1s;
+	cursor: pointer;
 }
 
 #upload {
 	display: inline-block;
-	color: #4295f4;
-	border-color: #4295f4;
-}
-
-#upload:hover {
-	color: #fff;
+	border-color: #4285f4;
 	background: #4285f4;
 }
 
-#rotate {
-	color: #fbbc05;
-	border-color: #fbbc05;
+#upload:hover {
+	color: #4285f4;
+	background: #fff;
 }
 
-#rotate:hover {
-	color: #fff;
+#rotate {
+	border-color: #fbbc05;
 	background: #fbbc05;
 }
 
-#print {
-	color: #ea4335;
-	border-color: #ea4335;
+#rotate:hover {
+	color: #fbbc05;
+	background: #fff;
 }
 
-#print:hover {
-	color: #fff;
+#flip {
+	border-color: #d01876;
+	background: #d01876;
+}
+
+#flip:hover {
+	color: #d01876;
+	background: #fff;
+}
+
+#print {
+	border-color: #ea4335;
 	background: #ea4335;
 }
 
+#print:hover {
+	color: #ea4335;
+	background: #fff;
+}
+
 #save {
-	color: #34a853;
 	border-color: #34a853;
+	background: #34a853;
 }
 
 #save:hover {
-	color: #fff;
-	background: #34a853;
+	color: #34a853;
+	background: #fff;
 }
 
 #container {
