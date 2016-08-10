@@ -1,12 +1,17 @@
-
-body, h1, button, div, input, select, option {
+body,
+h1,
+button,
+div,
+input,
+select,
+option {
 	margin: 0;
 	padding: 0;
 }
 
 body {
 	padding: 20px;
-	font: lighter 20px Tahoma,"Microsoft Yahei",sans-serif;
+	font: lighter 20px Tahoma, "Microsoft Yahei", sans-serif;
 	background: #eee;
 }
 
@@ -14,6 +19,11 @@ h1 {
 	color: #333;
 	font-size: 24px;
 	font-weight: normal;
+}
+
+.tip {
+	margin-top: 10px;
+	font-size: 16px;
 }
 
 button {
